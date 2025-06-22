@@ -1,0 +1,53 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f4f4f4;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  justify-content: flex-start;
+  padding-top: 20px;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+#controls {
+  margin-bottom: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+  justify-content: center;
+  max-width: 620px;
+}
+
+#controls label {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#controls input[type="range"] {
+  width: 120px;
+}
+
+#controls select,
+#controls button {
+  font-size: 14px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+canvas {
+  border: 1px solid #555;
+  image-rendering: pixelated;
+  display: block;
+  margin-top: 10px;
+  background: white;
+}
