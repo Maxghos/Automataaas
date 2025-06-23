@@ -1,6 +1,6 @@
 // Parámetros de la simulación
-let cols = 50;
-let rows = 50;
+let cols = 70;
+let rows = 70;
 let cellSize = 12;
 
 const STATE = {
@@ -292,4 +292,19 @@ function drawInfo() {
   text(`Infectadas: ${counts.infectado}`, 120, height + 18);
   text(`Muertas: ${counts.muerto}`, 230, height + 18);
   text(`Recuperadas: ${counts.recuperado}`, 330, height + 18);
+}
+ 
+
+/******************************************************** */
+
+function mousePressed() {
+  if (!brushMode) return;
+
+  let i = floor(mouseX / cellSize);
+  let j = floor(mouseY / cellSize);
+
+  if (i >= 0 && i < cols && j >= 0 && j < rows) {
+    grid[i][j] = brushInfecting ? STATE.INFECTADO : STATE.SANO;
+    timers[i][j] = brushInfecting ? infectionDuration : 0;
+  }
 }
