@@ -1,8 +1,9 @@
-// Parámetros de la simulación
-let visibleCols = 70; // Celdas visibles en el ancho del canvas
-let visibleRows = 70; // Celdas visibles en el alto del canvas
-let cellSize = 12;
+// Parámetros de configuración de la simulacion... Comentarios a continuación
+let visibleCols = 70;       // Cantidad de columnas visibles en el canvas (visual)
+let visibleRows = 70;       // Cantidad de filas visibles en el canvas (visual)
+let cellSize = 12;          // Tamaño de cada celda en píxeles
 
+// Estados posibles de cada celdaa
 const STATE = {
   SANO: 0,
   INFECTADO: 1,
@@ -10,42 +11,43 @@ const STATE = {
   RECUPERADO: 3
 };
 
-// **CAMBIO CLAVE: Usamos Mapas para un grid dinámico y disperso**
-let worldGrid = new Map();   // Almacena solo celdas no-SANO. Clave: "x,y", Valor: STATE
-let worldTimers = new Map(); // Almacena temporizadores para celdas no-SANO. Clave: "x,y", Valor: tiempo
+// Mapa dinámico -> solo se almacenan celdas distintas a "SANO"
+let worldGrid = new Map();     // Almacena el estado actual de cada celda
+let worldTimers = new Map();   // Almacena la duración restante de infección por celdaa
 
-let infectionChance = 0.3;
-let infectionDuration = 10;
-let deathChance = 0.5;
-let frameRateVal = 10;
+// Parametros de control ajustables desde la interfaz
+let infectionChance = 0.3;     // Probabilidad de infección
+let infectionDuration = 10;    // Duración en ciclos de la infección
+let deathChance = 0.5;         // Probabilidad de muerte tras infección
+let frameRateVal = 10;         // Velocidad de actualización en FPS
 
+// Control de ejecución
 let isPaused = false;
 
-let initialFocus = 'center'; // 'center', 'random', 'brush'
-let neighborhoodType = 'moore'; // 'moore' o 'vonneumann'
+// Configuraciones iniciales
+let initialFocus = 'center';         // Forma de iniciar la infección
+let neighborhoodType = 'moore';      // Tipo de vecindario (moore o von neumann)
+let brushMode = false;               // Si se puede dibujar con el mouse
+let brushInfecting = true;          // Define si el pincel infecta o sana
 
-let brushMode = false;
-let brushInfecting = true; // true: pintar infectado, false: pintar sano
+// Coordenadas para control de la cámara (mover con click derecho)
+let cameraX = 0, cameraY = 0;
+let lastMouseX = 0, lastMouseY = 0;
 
-// Variables para el panning (movimiento de la cámara)
-let cameraX = 0; // Coordenada X de la celda en la esquina superior izquierda del canvas
-let cameraY = 0; // Coordenada Y de la celda en la esquina superior izquierda del canvas
-let lastMouseX = 0;
-let lastMouseY = 0;
 
 function setup() {
-  // El canvas se crea con el tamaño de las celdas visibles
+  // El canvas (visual) se crea con el tamaño de las celdas visibles
   const canvas = createCanvas(visibleCols * cellSize, visibleRows * cellSize);
   canvas.parent(document.body);
 
   frameRate(frameRateVal);
-  setupGrid(); // Ahora inicializa los Mapas
+  setupGrid(); // Ahora inicializa los mapas...
 
-  setupUI(); // Esta función debe estar definida para ser llamada
+  setupUI(); // Esta función debe estar definida para ser llamada...
 }
 
 function setupGrid() {
-  // **CAMBIO CLAVE: Reiniciamos los Mapas, no un array fijo**
+  // CAMBIO CLAVE -> Reiniciamos los mapas, no un array fijo
   worldGrid = new Map();
   worldTimers = new Map();
   setInitialFocus();
@@ -58,7 +60,7 @@ function setupGrid() {
 
 function setInitialFocus() {
   // Ahora las coordenadas pueden ser negativas o muy grandes, representando un mundo infinito.
-  // Aquí elegimos un "centro" conceptual para el inicio.
+  // Donde aquí elegimos un "centro" conceptual para el inicio.
   if (initialFocus === 'center') {
     // El centro conceptual es (0,0) en este modelo de mundo infinito
     worldGrid.set("0,0", STATE.INFECTADO);
@@ -74,145 +76,202 @@ function setInitialFocus() {
       worldTimers.set(key, infectionDuration);
     }
   }
-  // brush no inicializa infectados automáticamente
+  // Brush no inicializa infectados automáticamente
 }
 
-// **Función setupUI (RE-INCLUIDA Y COMPLETA)**
+// Función setupUI()
+// Esta función se encarga de conectar todos los elementos de la interfaz de usuario (sliders, botones, selects, etc.)
+// con la lógica del programa, de forma que cualquier cambio que el usuario realice en la interfaz
+// afecte directamente a los parámetros y comportamiento de la simulación.
 function setupUI() {
-  // Referencias HTML
-  const icSlider = document.getElementById('infectionChance');
-  const icVal = document.getElementById('infectionChanceVal');
-  if (icSlider) { // Añadimos una verificación para evitar errores si el elemento no existe
-    icSlider.value = infectionChance;
-    icVal.textContent = infectionChance;
+  // ==============================
+  // Slider: Probabilidad de contagio
+  // ==============================
+  const icSlider = document.getElementById('infectionChance');     // Control deslizante del HTML
+  const icVal = document.getElementById('infectionChanceVal');     // Texto que muestra el valor actual
 
+  if (icSlider) { // Verificamos que el slider exista para evitar errores
+    icSlider.value = infectionChance;                   // Inicializa el slider con el valor actual
+    icVal.textContent = infectionChance;                // Muestra el valor numérico en pantalla
+
+    // Evento: cuando el usuario mueve el slider
     icSlider.oninput = () => {
-      infectionChance = parseFloat(icSlider.value);
-      icVal.textContent = infectionChance.toFixed(2);
+      infectionChance = parseFloat(icSlider.value);     // Actualiza la variable global
+      icVal.textContent = infectionChance.toFixed(2);   // Muestra el nuevo valor, con 2 decimales
     };
   }
 
+  // ==============================
+  // Slider: Duración de la infección (en ciclos)
+  // ==============================
   const idSlider = document.getElementById('infectionDuration');
   const idVal = document.getElementById('infectionDurationVal');
+
   if (idSlider) {
     idSlider.value = infectionDuration;
     idVal.textContent = infectionDuration;
 
     idSlider.oninput = () => {
-      infectionDuration = parseInt(idSlider.value);
+      infectionDuration = parseInt(idSlider.value);     // Actualiza duración como número entero
       idVal.textContent = infectionDuration;
     };
   }
 
+  // ==============================
+  // Slider: Probabilidad de muerte
+  // ==============================
   const deathSlider = document.getElementById('deathChance');
   const deathVal = document.getElementById('deathChanceVal');
+
   if (deathSlider) {
     deathSlider.value = deathChance;
     deathVal.textContent = deathChance;
 
     deathSlider.oninput = () => {
-      deathChance = parseFloat(deathSlider.value);
+      deathChance = parseFloat(deathSlider.value);       // Actualiza la probabilidad de muerte
       deathVal.textContent = deathChance.toFixed(2);
     };
   }
 
+  // ==============================
+  // Slider: Velocidad de la simulación (FPS)
+  // ==============================
   const fpsSlider = document.getElementById('frameRate');
   const fpsVal = document.getElementById('frameRateVal');
+
   if (fpsSlider) {
     fpsSlider.value = frameRateVal;
     fpsVal.textContent = frameRateVal;
 
     fpsSlider.oninput = () => {
-      frameRateVal = parseInt(fpsSlider.value);
+      frameRateVal = parseInt(fpsSlider.value);         // Actualiza la velocidad de cuadros por segundo
       fpsVal.textContent = frameRateVal;
-      frameRate(frameRateVal);
+      frameRate(frameRateVal);                          // Aplica el nuevo frameRate en tiempo real
     };
   }
 
+  // ==============================
+  // Botón: Reiniciar simulación
+  // ==============================
   const restartBtn = document.getElementById('restartBtn');
   if (restartBtn) {
     restartBtn.onclick = () => {
-      setupGrid();
+      setupGrid();  // Vuelve a inicializar el "mundo" (grid y estados)
     };
   }
 
+  // ==============================
+  // Botón: Pausar/Reanudar simulación
+  // ==============================
   const pauseBtn = document.getElementById('pauseBtn');
   if (pauseBtn) {
     pauseBtn.onclick = () => {
-      isPaused = !isPaused;
-      pauseBtn.textContent = isPaused ? 'Reanudar' : 'Pausar';
+      isPaused = !isPaused; // Alterna entre pausado y corriendo
+      pauseBtn.textContent = isPaused ? 'Reanudar' : 'Pausar'; // Cambia el texto del botón
     };
   }
 
+  // ==============================
+  // Selector: Tipo de foco inicial (center, random, brush)
+  // ==============================
   const initialFocusSelect = document.getElementById('initialFocus');
   if (initialFocusSelect) {
     initialFocusSelect.value = initialFocus;
+
     initialFocusSelect.onchange = () => {
-      initialFocus = initialFocusSelect.value;
-      setupGrid();
-      brushMode = (initialFocus === 'brush');
+      initialFocus = initialFocusSelect.value; // Actualiza la variable global
+      setupGrid();                             // Reinicia la simulación con el nuevo foco
+      brushMode = (initialFocus === 'brush');  // Si es modo pincel, habilita el brushMode
     };
   }
 
+  // ==============================
+  // Selector: Tipo de vecindario (Moore o Von Neumann)
+  // ==============================
   const neighborhoodSelect = document.getElementById('neighborhood');
   if (neighborhoodSelect) {
     neighborhoodSelect.value = neighborhoodType;
+
     neighborhoodSelect.onchange = () => {
-      neighborhoodType = neighborhoodSelect.value;
+      neighborhoodType = neighborhoodSelect.value; // Cambia el tipo de vecindario en tiempo real
     };
   }
 }
 
-function draw() {
-  background(220);
 
+// ==============================
+// FUNCIÓN PRINCIPAL DE DIBUJO Y ACTUALIZACIÓN
+// ==============================
+
+function draw() {
+  background(220); // Limpia el canvas con un fondo gris claro (color 220)
+
+  // Si la simulación no está en pausa, se actualiza el estado del mundo
   if (!isPaused) {
-    updateSimulation(); // Opera en los Mapas de worldGrid
+    updateSimulation(); // Calcula la evolución de la infección para un paso
   }
 
-  drawGrid();
-  drawGridLines(); // Las líneas se dibujan para el canvas visible
-  drawInfo(); // drawInfo debe contar del worldGrid (todos los elementos en el Map)
+  drawGrid();      // Dibuja las celdas en pantalla, según su estado actual
+  drawGridLines(); // Dibuja las líneas del grid visible (rejilla)
+  drawInfo();      // Muestra en pantalla información como cantidad de infectados, muertos, recuperados
 }
 
-function updateSimulation() {
-  // **CAMBIO CLAVE: La lógica de actualización para un grid disperso**
-  let newWorldGrid = new Map();
-  let newWorldTimers = new Map();
-  let cellsToProcess = new Set(); // Conjunto de celdas a considerar para el siguiente estado
+// ==============================
+// FUNCIÓN DE ACTUALIZACIÓN DE LA SIMULACIÓN
+// ==============================
 
-  // Añadir todas las celdas actualmente no-SANO y sus vecinos al conjunto de celdas a procesar
+function updateSimulation() {
+  // Crea nuevos mapas para guardar el estado actualizado del mundo
+  let newWorldGrid = new Map();       // Nuevo mapa de celdas activas (no sanas)
+  let newWorldTimers = new Map();     // Nuevo mapa con los temporizadores de infección
+
+  let cellsToProcess = new Set();     // Conjunto de celdas a analizar (las que pueden cambiar)
+
+  // Paso 1: Agregar al conjunto todas las celdas activas (infectados, muertos, recuperados)
+  // y también sus vecinos, ya que podrían infectarse
   for (let key of worldGrid.keys()) {
     let [x, y] = key.split(',').map(Number);
-    cellsToProcess.add(`${x},${y}`); // La celda actual
 
-    // Añadir vecinos también, ya que su estado puede cambiar
+    cellsToProcess.add(`${x},${y}`); // Agrega la celda actual
+
+    // Agrega los vecinos de esta celda (el vecindario depende del tipo seleccionado)
     let neighborsCoords = getNeighborCoordinates(x, y);
     for (let [nx, ny] of neighborsCoords) {
-      cellsToProcess.add(`${nx},${ny}`);
+      cellsToProcess.add(`${nx},${ny}`); // Cada vecino es candidato a cambiar
     }
   }
 
+  // Paso 2: Procesar cada celda que podría cambiar
   for (let key of cellsToProcess) {
     let [i, j] = key.split(',').map(Number);
-    let state = worldGrid.get(key) || STATE.SANO; // Si no está en el Map, es SANO
-    let timer = worldTimers.get(key) || 0; // Si no está, temporizador es 0
+
+    // Obtiene el estado actual de la celda y su temporizador
+    let state = worldGrid.get(key) || STATE.SANO;   // Si no está en el mapa, es SANO
+    let timer = worldTimers.get(key) || 0;
 
     let newState = state;
     let newTimer = timer;
 
+    // === CASO 1: Celda sana ===
     if (state === STATE.SANO) {
-      let infectedNeighbors = countInfectedNeighbors(i, j); // Opera en worldGrid (Map)
+      // Contamos cuántos vecinos están infectados
+      let infectedNeighbors = countInfectedNeighbors(i, j);
       if (infectedNeighbors > 0) {
+        // Calculamos la probabilidad acumulada de infección
         let prob = 1 - Math.pow(1 - infectionChance, infectedNeighbors);
         if (random() < prob) {
+          // Se infecta
           newState = STATE.INFECTADO;
           newTimer = infectionDuration;
         }
       }
+
+    // === CASO 2: Celda infectada ===
     } else if (state === STATE.INFECTADO) {
-      newTimer--;
+      newTimer--; // Disminuye el contador de infección
+
       if (newTimer <= 0) {
+        // La infección termina, la persona muere o se recupera
         if (random() < deathChance) {
           newState = STATE.MUERTO;
         } else {
@@ -220,95 +279,131 @@ function updateSimulation() {
         }
         newTimer = 0;
       }
-    }
-    // MUERTO y RECUPERADO no cambian
 
-    // Solo almacenar en el nuevo Map si el estado no es SANO
+    // === CASOS 3 y 4: MUERTO o RECUPERADO ===
+    // No se actualizan, simplemente se mantienen
+    }
+
+    // Si el nuevo estado no es SANO, lo almacenamos en los nuevos mapas
     if (newState !== STATE.SANO) {
       newWorldGrid.set(key, newState);
       newWorldTimers.set(key, newTimer);
     }
   }
 
+  // Finalmente, reemplazamos los mapas antiguos por los nuevos
   worldGrid = newWorldGrid;
   worldTimers = newWorldTimers;
 }
 
-// Función auxiliar para obtener coordenadas de vecinos
+
+// =============================================
+// Función auxiliar que obtiene las coordenadas de los vecinos de una celda
+// según el tipo de vecindario seleccionado (Moore o Von Neumann)
+// =============================================
 function getNeighborCoordinates(x, y) {
   let neighbors = [];
+
   if (neighborhoodType === 'moore') {
+    // Vecindario de Moore: considera las 8 celdas alrededor (horizontal, vertical y diagonal)
     neighbors = [
-      [x - 1, y - 1], [x, y - 1], [x + 1, y - 1],
-      [x - 1, y], [x + 1, y],
-      [x - 1, y + 1], [x, y + 1], [x + 1, y + 1]
+      [x - 1, y - 1], [x, y - 1], [x + 1, y - 1],  // Arriba
+      [x - 1, y],               [x + 1, y],        // Lados
+      [x - 1, y + 1], [x, y + 1], [x + 1, y + 1]   // Abajo
     ];
   } else {
+    // Vecindario de Von Neumann: solo considera las 4 celdas ortogonales (no diagonales)
     neighbors = [
-      [x, y - 1], [x - 1, y], [x + 1, y], [x, y + 1]
+      [x, y - 1],               // Arriba
+      [x - 1, y], [x + 1, y],   // Izquierda y derecha
+      [x, y + 1]                // Abajo
     ];
   }
-  return neighbors;
+
+  return neighbors; // Devuelve un arreglo de coordenadas [x, y] de vecinos
 }
 
+
+// =============================================
+// Función que cuenta cuántos vecinos infectados tiene una celda específica
+// =============================================
 function countInfectedNeighbors(x, y) {
   let count = 0;
+
+  // Obtener las coordenadas de los vecinos, según el tipo de vecindario
   let neighborsCoords = getNeighborCoordinates(x, y);
 
   for (const [nx, ny] of neighborsCoords) {
-    // Al ser un mundo infinito, no hay límites fijos de worldCols/worldRows aquí.
-    // Simplemente comprobamos si la celda existe y está infectada.
+    // Revisamos en el mapa worldGrid si la celda vecina está infectada
+    // Si no existe en el mapa, se asume que está sana y no se cuenta
     if (worldGrid.get(`${nx},${ny}`) === STATE.INFECTADO) {
-      count++;
+      count++; // Sumamos si está infectado
     }
   }
-  return count;
+
+  return count; // Retorna el número total de vecinos infectados
 }
 
+
 function drawGrid() {
-  noStroke();
-  // Dibujar solo las celdas visibles en el canvas
+  noStroke(); // Desactivar contornos para las celdas para que se vean lisas
+
+  // Recorrer todas las celdas visibles en el canvas según visibleCols y visibleRows
   for (let i = 0; i < visibleCols; i++) {
     for (let j = 0; j < visibleRows; j++) {
-      // Calcular la coordenada de la celda en el mundo
+
+      // Calcular la coordenada real en el "mundo" (considerando la posición de la cámara)
+      // cameraX y cameraY indican la celda en el mundo que está en la esquina superior izquierda del canvas
       let world_i = cameraX + i;
       let world_j = cameraY + j;
+
+      // Crear clave para buscar el estado en el Map worldGrid
       let key = `${world_i},${world_j}`;
 
-      // Obtener el estado del Map, si no existe, es SANO
+      // Obtener el estado actual de esa celda
+      // Si no está en el mapa, asumimos que es SANO (valor por defecto)
       let state = worldGrid.get(key) || STATE.SANO;
 
+      // Cambiar el color de relleno según el estado de la celda
       switch (state) {
         case STATE.SANO:
-          fill(0, 200, 0);
+          fill(0, 200, 0);  // Verde para sano
           break;
         case STATE.INFECTADO:
-          fill(255, 0, 0);
+          fill(255, 0, 0);  // Rojo para infectado
           break;
         case STATE.MUERTO:
-          fill(60, 40, 20);
+          fill(60, 40, 20); // Marrón oscuro para muerto
           break;
         case STATE.RECUPERADO:
-          fill(0, 150, 255);
+          fill(0, 150, 255); // Azul para recuperado
           break;
       }
-      // Dibujar la celda en la posición relativa al canvas
+
+      // Dibujar el rectángulo que representa la celda en la posición i,j del canvas
+      // El tamaño de cada celda es cellSize x cellSize píxeles
       rect(i * cellSize, j * cellSize, cellSize, cellSize);
     }
   }
 }
 
+// -----------------------------------------------------------
+
 function drawGridLines() {
-  stroke(150);
-  strokeWeight(1);
-  // Dibujar líneas para la vista actual del canvas (visibleCols x visibleRows)
+  stroke(150);       // Color gris para las líneas
+  strokeWeight(1);   // Grosor de línea delgada
+
+  // Dibujar líneas verticales para separar columnas visibles
   for (let i = 0; i <= visibleCols; i++) {
     line(i * cellSize, 0, i * cellSize, height);
   }
+
+  // Dibujar líneas horizontales para separar filas visibles
   for (let j = 0; j <= visibleRows; j++) {
     line(0, j * cellSize, width, j * cellSize);
   }
 }
+
 
 function drawInfo() {
   fill(0);

@@ -1,53 +1,60 @@
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background: #d9d9ff;
-  color: #222;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  justify-content: flex-start;
-  padding-top: 20px;
+body {                                   /*Todos Los COmentarios Respecto a CSS a continuación...*/
+  font-family: Arial, sans-serif;        /* Fuente principal del sitio */
+  margin: 0;                             /* Eliminar margen por defecto del navegador */
+  padding: 0;                            /* Eliminar relleno por defecto del navegador */
+  background: #d9d9ff;                   /* Color de fondo suave (lavanda claro) */
+  color: #222;                           /* Color de texto principal (gris oscuro) */
+  display: flex;                         /* Usar Flexbox para distribuir elementos */
+  flex-direction: column;               /* Apilar elementos verticalmente */
+  align-items: center;                  /* Centrar elementos horizontalmente */
+  min-height: 100vh;                    /* Altura mínima: toda la ventana */
+  justify-content: flex-start;          /* Alinear elementos desde la parte superior */
+  padding-top: 20px;                    /* Espacio superior para separarlos del borde */
 }
+
 
 h1 {
-  margin-bottom: 10px;
+  margin-bottom: 10px;                  /* Separación inferior del título */
 }
+
 
 #controls {
-  margin-bottom: 15px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 15px;
-  align-items: center;
-  justify-content: center;
-  max-width: 620px;
+  margin-bottom: 15px;                  /* Separación inferior respecto al canvas */
+  display: flex;                        /* Flexbox para acomodar los controles */
+  flex-wrap: wrap;                      /* Permitir que los elementos se ajusten a varias líneas */
+  gap: 15px;                            /* Espaciado entre elementos */
+  align-items: center;                  /* Centrar verticalmente cada control */
+  justify-content: center;             /* Centrar el grupo de controles */
+  max-width: 620px;                     /* Ancho máximo para que no se estire demasiado */
 }
+
 
 #controls label {
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  font-size: 14px;                      /* Tamaño de fuente de las etiquetas */
+  display: flex;                        /* Mostrar cada label como un flex container */
+  align-items: center;                  /* Centrar verticalmente texto y sliders */
+  gap: 6px;                             /* Espacio entre el texto del label y el input */
 }
 
+
 #controls input[type="range"] {
-  width: 120px;
+  width: 120px;                         /* Ancho de los sliders */
 }
+
 
 #controls select,
 #controls button {
-  font-size: 14px;
-  padding: 5px 8px;
-  cursor: pointer;
+  font-size: 14px;                      /* Tamaño de letra uniforme */
+  padding: 5px 8px;                     /* Espaciado interno para mejorar la usabilidad */
+  cursor: pointer;                      /* Mostrar ícono de mano al pasar el mouse */
 }
 
+
 canvas {
-  border: 1px solid #555;
-  image-rendering: pixelated;
-  display: block;
-  margin-top: 10px;
-  background: white;
+  border: 1px solid #555;               /* Borde gris oscuro para el canvas */
+  image-rendering: pixelated;           /* Forzar que los píxeles se vean definidos (efecto retro) */
+  display: block;                       /* Eliminar el espacio por defecto en elementos inline */
+  margin-top: 10px;                     /* Separación superior respecto a los controles */
+  background: white;                    /* Fondo blanco para distinguir el área del canvas */
 }
+

@@ -9,34 +9,37 @@
 <body>
   <h1>Propagación De Plagas🔥😱😱🔥🔥</h1>
 
+    <!-- Contenedor principal de los controles de la simulación -->
   <div id="controls">
+    <!-- Slider para ajustar la probabilidad de contagio -->
     <label>
       Probabilidad de contagio:
       <input type="range" id="infectionChance" min="0" max="1" step="0.01" value="0.3" />
       <span id="infectionChanceVal">0.30</span>
     </label>
-
+    <!-- Slider para ajustar la duración de la infección en ciclos -->
     <label>
       Duración infección (ciclosss):
       <input type="range" id="infectionDuration" min="1" max="20" step="1" value="10" />
       <span id="infectionDurationVal">10</span>
     </label>
-
+    <!-- Slider para ajustar la probabilidad de muerte -->
     <label>
       Probabilidad de muerte:
       <input type="range" id="deathChance" min="0" max="1" step="0.01" value="0.5" />
       <span id="deathChanceVal">0.50</span>
     </label>
-
+    <!-- Slider para modificar la velocidad de simulación (FPS) -->
     <label>
       Velocidad (FPS):
       <input type="range" id="frameRate" min="1" max="30" step="1" value="10" />
       <span id="frameRateVal">10</span>
     </label>
-
+    <!-- Botón para reiniciar la simulación -->
     <button id="restartBtn">Reiniciar</button>
+    <!-- Botón para pausar/reanudar la simulación -->
     <button id="pauseBtn">Pausar</button>
-
+    <!-- Selector para definir el tipo de foco inicial de infección -->
     <label>
       Focos iniciales:
       <select id="initialFocus">
@@ -46,6 +49,7 @@
       </select>
     </label>
 
+    <!-- Selector para definir el tipo de vecindario para la propagación -->
     <label>
       Vecindario:
       <select id="neighborhood">
@@ -54,8 +58,9 @@
       </select>
     </label>
   </div>
-
+  <!-- Librería p5.js para gráficos y animaciones -->
   <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.min.js"></script>
+  <!-- Script principal que contiene la lógica de la simulación (El Javascript/JS) -->
   <script src="sdfhsd.js"></script>
 </body>
 </html>
